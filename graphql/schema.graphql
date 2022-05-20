@@ -1,0 +1,463 @@
+"""
+The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`.
+"""
+directive @defer(
+    """
+    If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to.
+    """
+    label: String
+
+    """
+    Deferred when true.
+    """
+    if: Boolean
+) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"""
+The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`.
+"""
+directive @stream(
+    """
+    If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to.
+    """
+    label: String
+
+    """
+    The initial elements that shall be send down to the consumer.
+    """
+    initialCount: Int! = 0
+
+    """
+    Streamed when true.
+    """
+    if: Boolean
+) on FIELD
+
+directive @authorize(
+    """
+    The name of the authorization policy that determines access to the annotated resource.
+    """
+    policy: String
+
+    """
+    Roles that are allowed to access the annotated resource.
+    """
+    roles: [String!]
+
+    """
+    Defines when when the resolver shall be executed.By default the resolver is executed after the policy has determined that the current user is allowed to access the field.
+    """
+    apply: ApplyPolicy! = BEFORE_RESOLVER
+) repeatable on SCHEMA | OBJECT | FIELD_DEFINITION
+
+"""
+The `MacAddress` scalar type represents a IEEE 802 48-bit or 64-bit Mac address, represented as UTF-8 character sequences. The scalar follows the specifications defined in RFC7042 and RFC7043 respectively.
+"""
+scalar MacAddress
+
+enum ApplyPolicy {
+    BEFORE_RESOLVER
+    AFTER_RESOLVER
+}
+
+type Query {
+    networks(
+        skip: Int
+        take: Int
+        where: NetworkFilterInput
+        order: [NetworkSortInput!]
+    ): NetworkCollectionSegment
+    network(id: Int!): Network
+    networkByAddress(address: IPNetwork!): Network
+    devices(
+        skip: Int
+        take: Int
+        where: DeviceFilterInput
+        order: [DeviceSortInput!]
+    ): DeviceCollectionSegment
+    device(id: Int!): Device
+    searchNetworks(searchQuery: String!): [Network!]!
+    searchDevices(searchQuery: String!, excludeNetworkId: Int): [Device!]!
+    networkDevices(
+        skip: Int
+        take: Int
+        where: NetworkDeviceFilterInput
+        order: [NetworkDeviceSortInput!]
+    ): NetworkDeviceCollectionSegment
+    users(
+        skip: Int
+        take: Int
+        where: UserFilterInput
+        order: [UserSortInput!]
+    ): UserCollectionSegment
+    user(id: String!): User
+}
+
+type Mutation {
+    addNetwork(network: NetworkInfoInput!): Network!
+    updateNetwork(id: Int!, network: NetworkInfoInput!): Network!
+    deleteNetwork(id: Int!): Network!
+    addDevice(device: DeviceInfoInput!): Device!
+    updateDevice(id: Int!, device: DeviceInfoInput!): Device!
+    deleteDevice(id: Int!): Device!
+    addNetworkDevice(device: NetworkDeviceInfoInput!): NetworkDevice!
+    updateNetworkDevice(id: Int!, device: NetworkDeviceInfoInput!): NetworkDevice!
+    deleteNetworkDevice(networkId: Int!, deviceId: Int!): NetworkDevice!
+}
+
+input NetworkFilterInput {
+    and: [NetworkFilterInput!]
+    or: [NetworkFilterInput!]
+    name: StringOperationFilterInput
+    description: StringOperationFilterInput
+    id: ComparableInt32OperationFilterInput
+    ipAddress: IpNetworkFilterInput
+    parentId: ComparableNullableOfInt32OperationFilterInput
+}
+
+input NetworkSortInput {
+    id: SortEnumType
+    name: SortEnumType
+    ipAddress: SortEnumType
+    parentId: SortEnumType
+}
+
+input DeviceFilterInput {
+    and: [DeviceFilterInput!]
+    or: [DeviceFilterInput!]
+    id: ComparableInt32OperationFilterInput
+    name: StringOperationFilterInput
+    description: StringOperationFilterInput
+    serialNumber: StringOperationFilterInput
+    manufacturer: StringOperationFilterInput
+    macAddress: PhysicalAddressFilterInput
+    networkDevices: ListFilterInputTypeOfNetworkDeviceFilterInput
+}
+
+input DeviceSortInput {
+    id: SortEnumType
+    name: SortEnumType
+    macAddress: SortEnumType
+}
+
+input NetworkDeviceFilterInput {
+    and: [NetworkDeviceFilterInput!]
+    or: [NetworkDeviceFilterInput!]
+    networkId: ComparableInt32OperationFilterInput
+    ipAddress: IpAddressFilterInput
+}
+
+input NetworkDeviceSortInput {
+    networkId: SortEnumType
+    deviceId: SortEnumType
+    ipAddress: SortEnumType
+}
+
+input UserFilterInput {
+    and: [UserFilterInput!]
+    or: [UserFilterInput!]
+    roles: ListFilterInputTypeOfRoleFilterInput
+    id: StringOperationFilterInput
+    userName: StringOperationFilterInput
+    normalizedUserName: StringOperationFilterInput
+    email: StringOperationFilterInput
+    normalizedEmail: StringOperationFilterInput
+    emailConfirmed: BooleanOperationFilterInput
+    passwordHash: StringOperationFilterInput
+    securityStamp: StringOperationFilterInput
+    concurrencyStamp: StringOperationFilterInput
+    phoneNumber: StringOperationFilterInput
+    phoneNumberConfirmed: BooleanOperationFilterInput
+    twoFactorEnabled: BooleanOperationFilterInput
+    lockoutEnd: ComparableNullableOfDateTimeOffsetOperationFilterInput
+    lockoutEnabled: BooleanOperationFilterInput
+    accessFailedCount: ComparableInt32OperationFilterInput
+}
+
+input UserSortInput {
+    id: SortEnumType
+    userName: SortEnumType
+    normalizedUserName: SortEnumType
+    email: SortEnumType
+    normalizedEmail: SortEnumType
+    emailConfirmed: SortEnumType
+    passwordHash: SortEnumType
+    securityStamp: SortEnumType
+    concurrencyStamp: SortEnumType
+    phoneNumber: SortEnumType
+    phoneNumberConfirmed: SortEnumType
+    twoFactorEnabled: SortEnumType
+    lockoutEnd: SortEnumType
+    lockoutEnabled: SortEnumType
+    accessFailedCount: SortEnumType
+}
+
+type NetworkCollectionSegment {
+    items: [Network!]
+
+    """
+    Information to aid in pagination.
+    """
+    pageInfo: CollectionSegmentInfo!
+}
+
+type DeviceCollectionSegment {
+    items: [Device!]
+
+    """
+    Information to aid in pagination.
+    """
+    pageInfo: CollectionSegmentInfo!
+}
+
+type NetworkDeviceCollectionSegment {
+    items: [NetworkDevice!]
+
+    """
+    Information to aid in pagination.
+    """
+    pageInfo: CollectionSegmentInfo!
+}
+
+type UserCollectionSegment {
+    items: [User!]
+
+    """
+    Information to aid in pagination.
+    """
+    pageInfo: CollectionSegmentInfo!
+}
+
+input StringOperationFilterInput {
+    and: [StringOperationFilterInput!]
+    or: [StringOperationFilterInput!]
+    eq: String
+    neq: String
+    contains: String
+    ncontains: String
+    in: [String]
+    nin: [String]
+    startsWith: String
+    nstartsWith: String
+    endsWith: String
+    nendsWith: String
+}
+
+input ComparableInt32OperationFilterInput {
+    eq: Int
+    neq: Int
+    in: [Int!]
+    nin: [Int!]
+    gt: Int
+    ngt: Int
+    gte: Int
+    ngte: Int
+    lt: Int
+    nlt: Int
+    lte: Int
+    nlte: Int
+}
+
+input IpNetworkFilterInput {
+    and: [IpNetworkFilterInput!]
+    or: [IpNetworkFilterInput!]
+    eq: IPNetwork
+    neq: IPNetwork
+}
+
+input ComparableNullableOfInt32OperationFilterInput {
+    eq: Int
+    neq: Int
+    in: [Int]
+    nin: [Int]
+    gt: Int
+    ngt: Int
+    gte: Int
+    ngte: Int
+    lt: Int
+    nlt: Int
+    lte: Int
+    nlte: Int
+}
+
+enum SortEnumType {
+    ASC
+    DESC
+}
+
+input PhysicalAddressFilterInput {
+    and: [PhysicalAddressFilterInput!]
+    or: [PhysicalAddressFilterInput!]
+}
+
+input ListFilterInputTypeOfNetworkDeviceFilterInput {
+    all: NetworkDeviceFilterInput
+    none: NetworkDeviceFilterInput
+    some: NetworkDeviceFilterInput
+    any: Boolean
+}
+
+input IpAddressFilterInput {
+    and: [IpAddressFilterInput!]
+    or: [IpAddressFilterInput!]
+    eq: IPAddress
+    neq: IPAddress
+}
+
+input ListFilterInputTypeOfRoleFilterInput {
+    all: RoleFilterInput
+    none: RoleFilterInput
+    some: RoleFilterInput
+    any: Boolean
+}
+
+input BooleanOperationFilterInput {
+    eq: Boolean
+    neq: Boolean
+}
+
+input ComparableNullableOfDateTimeOffsetOperationFilterInput {
+    eq: DateTime
+    neq: DateTime
+    in: [DateTime]
+    nin: [DateTime]
+    gt: DateTime
+    ngt: DateTime
+    gte: DateTime
+    ngte: DateTime
+    lt: DateTime
+    nlt: DateTime
+    lte: DateTime
+    nlte: DateTime
+}
+
+type Network {
+    id: Int!
+    parentId: Int
+    name: String
+    description: String
+    dnsServer: String
+    dhcpEnabled: Boolean!
+    vlan: Int
+    ipAddress: IPNetwork
+    devices: [NetworkDevice!]!
+    subNetworks: [Network!]!
+}
+
+"""
+Information about the offset pagination.
+"""
+type CollectionSegmentInfo {
+    """
+    Indicates whether more items exist following the set defined by the clients arguments.
+    """
+    hasNextPage: Boolean!
+
+    """
+    Indicates whether more items exist prior the set defined by the clients arguments.
+    """
+    hasPreviousPage: Boolean!
+}
+
+type Device {
+    id: Int!
+    name: String
+    description: String
+    serialNumber: String
+    manufacturer: String
+    macAddress: MacAddress
+    networkDevices: [NetworkDevice!]!
+}
+
+type NetworkDevice {
+    networkId: Int!
+    deviceId: Int!
+    ipAddress: IPAddress
+    dhcp: Boolean!
+    network: Network!
+    device: Device!
+}
+
+type User {
+    roles: [Role!]!
+    id: String
+    userName: String
+    normalizedUserName: String
+    email: String
+    normalizedEmail: String
+    emailConfirmed: Boolean!
+    passwordHash: String
+    securityStamp: String
+    concurrencyStamp: String
+    phoneNumber: String
+    phoneNumberConfirmed: Boolean!
+    twoFactorEnabled: Boolean!
+    lockoutEnd: DateTime
+    lockoutEnabled: Boolean!
+    accessFailedCount: Int!
+}
+
+"""
+Ipv4 or Ipv6 cidr
+"""
+scalar IPNetwork
+
+"""
+Ipv4 or Ipv6 address
+"""
+scalar IPAddress
+
+input RoleFilterInput {
+    and: [RoleFilterInput!]
+    or: [RoleFilterInput!]
+    users: ListFilterInputTypeOfUserFilterInput
+    id: StringOperationFilterInput
+    name: StringOperationFilterInput
+    normalizedName: StringOperationFilterInput
+    concurrencyStamp: StringOperationFilterInput
+}
+
+input ListFilterInputTypeOfUserFilterInput {
+    all: UserFilterInput
+    none: UserFilterInput
+    some: UserFilterInput
+    any: Boolean
+}
+
+"""
+The `DateTime` scalar represents an ISO-8601 compliant date time type.
+"""
+scalar DateTime
+
+type Role {
+    users: [User!]!
+    id: String
+    name: String
+    normalizedName: String
+    concurrencyStamp: String
+}
+
+input NetworkInfoInput {
+    parentId: Int
+    name: String
+    description: String
+    ipAddress: IPNetwork
+    dnsServer: String
+    dhcpEnabled: Boolean!
+    vlan: Int
+}
+
+input DeviceInfoInput {
+    name: String
+    description: String
+    serialNumber: String
+    manufacturer: String
+    macAddress: MacAddress
+}
+
+input NetworkDeviceInfoInput {
+    networkId: Int!
+    deviceId: Int!
+    ipAddress: IPAddress
+    dhcp: Boolean!
+}

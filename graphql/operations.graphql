@@ -1,0 +1,249 @@
+query AllNetworks(
+    $where: NetworkFilterInput
+    $skip: Int
+    $take: Int
+    $order: [NetworkSortInput!]
+) {
+    networks(where: $where, skip: $skip, take: $take, order: $order) {
+        items {
+            id
+            name
+            ipAddress
+            subNetworks {
+                id
+            }
+        }
+    }
+}
+
+query ChildNetworks(
+    $parentId: Int
+    $skip: Int
+    $take: Int
+    $order: [NetworkSortInput!]
+) {
+    networks(
+        where: { parentId: { eq: $parentId } }
+        skip: $skip
+        take: $take
+        order: $order
+    ) {
+        items {
+            id
+            name
+            ipAddress
+        }
+    }
+}
+
+query AllDevices(
+    $where: DeviceFilterInput
+    $skip: Int
+    $take: Int
+    $order: [DeviceSortInput!]
+) {
+    devices(where: $where, skip: $skip, take: $take, order: $order) {
+        items {
+            id
+            name
+            macAddress
+        }
+    }
+}
+
+query AllNetworkDevices(
+    $where: NetworkDeviceFilterInput
+    $skip: Int
+    $take: Int
+    $order: [NetworkDeviceSortInput!]
+) {
+    networkDevices(where: $where, skip: $skip, take: $take, order: $order) {
+        items {
+            ipAddress
+            dhcp
+            device {
+                id
+                name
+                description
+                macAddress
+            }
+        }
+    }
+}
+
+query GetDevice($id: Int!) {
+    device(id: $id) {
+        id
+        name
+        description
+        macAddress
+        serialNumber
+        manufacturer
+    }
+}
+
+query GetNetwork($id: Int!) {
+    network(id: $id) {
+        id
+        name
+        description
+        ipAddress
+        vlan
+        dnsServer
+        dhcpEnabled
+        devices {
+            ipAddress
+            device {
+                id
+                name
+            }
+        }
+        subNetworks {
+            id
+        }
+    }
+}
+
+query SearchNetworks($searchQuery: String!) {
+    searchNetworks(searchQuery: $searchQuery) {
+        id
+        name
+        ipAddress
+    }
+}
+
+query SearchDevices($searchQuery: String!, $excludeNetworkId: Int) {
+    searchDevices(
+        searchQuery: $searchQuery
+        excludeNetworkId: $excludeNetworkId
+    ) {
+        id
+        name
+        macAddress
+    }
+}
+
+query GetNetworkByAddress($address: IPNetwork!) {
+    networkByAddress(address: $address) {
+        id
+        name
+        description
+        ipAddress
+        devices {
+            ipAddress
+            device {
+                id
+                name
+            }
+        }
+    }
+}
+
+mutation AddDevice($device: DeviceInfoInput!) {
+    addDevice(device: $device) {
+        id
+        name
+        description
+        macAddress
+    }
+}
+
+mutation AddNetwork($network: NetworkInfoInput!) {
+    addNetwork(network: $network) {
+        id
+        parentId
+        name
+        description
+        ipAddress
+        dnsServer
+        dhcpEnabled
+        vlan
+    }
+}
+
+mutation AddNetworkDevice($networkDevice: NetworkDeviceInfoInput!) {
+    addNetworkDevice(device: $networkDevice) {
+        networkId
+        deviceId
+        ipAddress
+        dhcp
+    }
+}
+
+mutation UpdateDevice($id: Int!, $device: DeviceInfoInput!) {
+    updateDevice(id: $id, device: $device) {
+        id
+        name
+        description
+        macAddress
+    }
+}
+
+mutation UpdateNetwork($id: Int!, $network: NetworkInfoInput!) {
+    updateNetwork(id: $id, network: $network) {
+        id
+        parentId
+        name
+        description
+        ipAddress
+        dnsServer
+        dhcpEnabled
+        vlan
+    }
+}
+
+mutation UpdateNetworkDevice(
+    $id: Int!
+    $networkDevice: NetworkDeviceInfoInput!
+) {
+    updateNetworkDevice(id: $id, device: $networkDevice) {
+        networkId
+        deviceId
+        ipAddress
+        dhcp
+    }
+}
+
+mutation DeleteDevice($id: Int!) {
+    deleteDevice(id: $id) {
+        id
+        name
+        description
+        macAddress
+        serialNumber
+        manufacturer
+    }
+}
+
+mutation DeleteNetwork($id: Int!) {
+    deleteNetwork(id: $id) {
+        id
+        name
+        description
+        ipAddress
+        dhcpEnabled
+        dnsServer
+        vlan
+    }
+}
+
+mutation DeleteNetworkDevice($networkId: Int!, $deviceId: Int!) {
+    deleteNetworkDevice(networkId: $networkId, deviceId: $deviceId) {
+        networkId
+        deviceId
+        ipAddress
+        dhcp
+    }
+}
+
+query GetUsers($order: [UserSortInput!], $skip: Int, $take: Int, $where: UserFilterInput) {
+    users(order: $order, skip : $skip, take: $take, where: $where) {
+        items {
+            roles {
+                name
+            }
+            id
+            userName
+        }
+    }
+}
